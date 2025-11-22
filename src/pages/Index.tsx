@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Icon from '@/components/ui/icon'
+import AuthDialog from '@/components/AuthDialog'
+import AuthDialog from '@/components/AuthDialog'
 
 interface ForumTopic {
   id: number
@@ -76,6 +78,26 @@ const profileMessages: ProfileMessage[] = [
 export default function Index() {
   const [activeTab, setActiveTab] = useState('Главная')
   const [searchQuery, setSearchQuery] = useState('')
+  const [authDialogOpen, setAuthDialogOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser))
+    }
+  }, [])
+
+  const handleAuthSuccess = (user: any, sessionToken: string) => {
+    setCurrentUser(user)
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('user')
+    localStorage.removeItem('session_token')
+    setCurrentUser(null)
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,8 +138,26 @@ export default function Index() {
             <Button variant="ghost" size="icon" className="md:hidden">
               <Icon name="Menu" size={24} />
             </Button>
-            <Button size="sm" className="hidden md:inline-flex">ВХОД</Button>
-            <Button size="sm" variant="destructive" className="hidden md:inline-flex">РЕГИСТРАЦИЯ</Button>
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                      {currentUser.username[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">{currentUser.username}</span>
+                </div>
+                <Button size="sm" variant="outline" onClick={handleLogout}>
+                  Выход
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button size="sm" className="hidden md:inline-flex" onClick={() => { setAuthMode('login'); setAuthDialogOpen(true); }}>ВХОД</Button>
+                <Button size="sm" variant="destructive" className="hidden md:inline-flex" onClick={() => { setAuthMode('register'); setAuthDialogOpen(true); }}>РЕГИСТРАЦИЯ</Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -285,6 +325,13 @@ export default function Index() {
           </div>
         </div>
       </section>
+
+      <AuthDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        mode={authMode}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   )
 }
