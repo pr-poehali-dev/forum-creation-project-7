@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import Icon from '@/components/ui/icon'
 import AuthDialog from '@/components/AuthDialog'
-import AuthDialog from '@/components/AuthDialog'
 
 interface ForumTopic {
   id: number
